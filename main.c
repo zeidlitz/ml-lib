@@ -13,6 +13,7 @@ typedef struct {
 } matrix;
 
 matrix* mat_create(mem_arena* arena, u32 rows, u32 cols);
+matrix* mat_load(mem_arena* arena, u32 rows, u32 cols, const char* filename);
 b32 mat_copy(matrix* dst, matrix* src);
 void mat_clear(matrix* mat);
 void mat_fill(matrix* mat, f32 x);
@@ -28,12 +29,32 @@ b32 mat_relu_add_grad(matrix* out, const matrix* in);
 b32 mat_softmax_add_grad(matrix* out, const matrix* softmax_out);
 b32 mat_cross_entropy_add_grad(matrix* out, const matrix* p, const matrix* q);
 
+void draw_mnist_digit(f32* data);
+
 int main(void) {
   mem_arena* perm_arena = arena_create(GiB(1), MiB(1));
+  matrix* train_images = mat_load(perm_arena, 60000, 784, "data/train_images.mat");
+  matrix* test_images = mat_load(perm_arena, 10000, 784, "data/test_images.mat");
+  matrix* train_labels = mat_load(perm_arena, 60000, 10, "data/train_labels.mat");
+  matrix* test_labels = mat_load(perm_arena, 10000, 10, "data/test_labels.mat");
+  // Continue from 38.00
+  draw_mnist_digit(train_images->data);
   arena_destroy(perm_arena);
-  printf("Hello World!\n");
+  printf("Machine Learning!\n");
   return 0;
 } 
+
+void draw_mnist_digit(f32* data) {
+    for (u32 y = 0; y < 28; y++) {
+        for (u32 x = 0; x < 28; x++) {
+            f32 num = data[x + y * 28];
+            u32 col = 232 + (u32)(num * 23);
+            printf("\x1b[48;5;%dm  ", col);
+        }
+        printf("\n");
+    }
+    printf("\x1b[0m");
+}
 
 matrix* mat_create(mem_arena* arena, u32 rows, u32 cols) { 
   matrix* mat = PUSH_STRUCT(arena, matrix);
@@ -41,6 +62,18 @@ matrix* mat_create(mem_arena* arena, u32 rows, u32 cols) {
   mat->cols = cols;
   mat->data = PUSH_ARRAY(arena, f32, (u64)rows * cols);
   return mat;
+}
+
+matrix* mat_load(mem_arena* arena, u32 rows, u32 cols, const char* filename) { 
+  matrix* mat = mat_create(arena, rows, cols);
+  FILE* f = fopen(filename, "rb");
+  fseek(f, 0, SEEK_END);
+  u64 size = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  size = MIN(size, sizeof(f32) * rows * cols);
+  fread(mat->data, 1, size, f);
+  fclose(f);
+  return  mat;
 }
 
 b32 mat_copy(matrix* dst, matrix* src) {
