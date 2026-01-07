@@ -184,7 +184,7 @@ int main(void) {
                                        .train_labels = train_labels,
                                        .test_images = test_images,
                                        .test_labels = test_labels,
-                                       .epochs = 3,
+                                       .epochs = 1,
                                        .batch_size = 50,
                                        .learning_rate = 0.01f};
 
@@ -799,7 +799,7 @@ void model_prog_compute_grads(model_program *prog) {
   for (i64 i = (i64)prog->size - 1; i >= 0; i--) {
     model_var *cur = prog->vars[i];
 
-    if ((cur->flags * MV_FLAG_REQUIRES_GRAD) == 0) {
+    if ((cur->flags & MV_FLAG_REQUIRES_GRAD) == 0) {
       continue;
     }
 
