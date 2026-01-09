@@ -1,13 +1,12 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "base.h"
 #include "arena.h"
-#include "prng.h"
 
 #include "arena.c"
-#include "prng.c"
 
 typedef struct {
   u32 rows, cols;
@@ -297,8 +296,7 @@ void mat_fill(matrix *mat, f32 x) {
 void mat_fill_rand(matrix *mat, f32 lower, f32 upper) {
   u64 size = (u64)mat->rows * mat->cols;
   for (u64 i = 0; i < size; i++) {
-    // benchmark this vs another rand lib
-    mat->data[i] = prng_randf() * (upper - lower) + lower;
+    mat->data[i] = ((float)rand() / (float)RAND_MAX) * (upper - lower) + lower;
   }
 }
 
@@ -913,8 +911,8 @@ void model_train(model_context *model,
 
   for (u32 epoch = 0; epoch < training_desc->epochs; epoch++) {
     for (u32 i = 0; i < num_examples; i++) {
-      u32 a = prng_rand() % num_examples;
-      u32 b = prng_rand() % num_examples;
+      u32 a = rand() % num_examples;
+      u32 b = rand() % num_examples;
 
       u32 tmp = training_order[b];
       training_order[b] = training_order[a];
